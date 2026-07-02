@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroChem ERP - Transactions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="../assets/css/style.css?v=41"><link rel="stylesheet" href="../assets/css/tables.css?v=41"><link rel="stylesheet" href="../assets/css/forms.css?v=41"><link rel="stylesheet" href="../assets/css/responsive.css?v=41"><link rel="stylesheet" href="../assets/css/components/search-select.css?v=41">
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+  <script src="../assets/js/shared-layout.js?v=41"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>LAYOUT.injectLayout('Transactions','Transactions'))</script>
+  <main class="main-content" id="main-content">
+    <div class="page-body">
+      <div class="page-header">
+        <div class="page-header-left"><h2>Transactions</h2><p>Payment receipts and disbursements ledger</p></div>
+        <div class="page-header-right">
+
+          <button class="btn btn-primary" onclick="openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Record Payment</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid transaction-kpi-grid">
+        <div class="stat-card transaction-stat-card transaction-stat-card-receipt">
+          <div class="transaction-stat-top">
+            <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          </div>
+          <div class="stat-label">Total Receipts</div>
+          <div class="stat-value" id="total-receipts">-</div>
+          <div class="transaction-stat-meta" id="receipt-meta">Incoming cash collected</div>
+        </div>
+        <div class="stat-card transaction-stat-card transaction-stat-card-payment">
+          <div class="transaction-stat-top">
+            <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+          </div>
+          <div class="stat-label">Total Payments</div>
+          <div class="stat-value" id="total-payments">-</div>
+          <div class="transaction-stat-meta" id="payment-meta">Payments Made</div>
+        </div>
+        <div class="stat-card transaction-stat-card transaction-stat-card-net">
+          <div class="transaction-stat-top">
+            <div class="stat-icon purple"><span aria-hidden="true" style="font-size:24px;font-weight:800;line-height:1">₹</span></div>
+          </div>
+          <div class="stat-label">Net Balance</div>
+          <div class="stat-value" id="net-balance">-</div>
+          <div class="transaction-stat-meta" id="net-balance-meta">Receipts minus payments</div>
+        </div>
+      </div>
+
+      <div class="table-wrap data-table-wrap-mobile">
+        <div class="table-toolbar">
+          <div class="table-toolbar-left">
+            <div class="table-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="search-input" placeholder="Search transactions..."></div>
+            <div class="table-filter"><select id="type-filter"><option value="">All Types</option><option>Receipt</option><option>Payment</option></select></div>
+          </div>
+          <div class="table-toolbar-right"><span class="text-sm text-muted" id="total-info">Loading...</span></div>
+        </div>
+        <table class="data-table" id="txn-table">
+          <thead><tr><th><input type="checkbox"></th><th>Date</th><th>Type</th><th>Reference</th><th>Party</th><th>Mode</th><th>Amount</th><th>Actions</th></tr></thead>
+          <tbody><tr><td colspan="8"><div class="empty-state"><div class="spinner" style="margin:0 auto"></div></div></td></tr></tbody>
+        </table>
+        <div class="pagination"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="txn-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><span class="modal-title" id="modal-title">Record Transaction</span><button class="modal-close" onclick="APP.closeModal('txn-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <form id="txn-form" onsubmit="return false">
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Transaction Details</h4>
+            <p>Declare ledger type (Receipt/Payment), posting date, reference ID, and stakeholder name.</p>
+          </div>
+          <div class="form-grid product-form-grid">
+            <div class="form-group">
+              <label class="form-label">Type <span class="required">*</span></label>
+              <select class="form-select" name="type"><option>Receipt</option><option>Payment</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date <span class="required">*</span></label>
+              <input class="form-input" name="date" id="txn-date-field" type="date">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Party Name</label>
+              <input class="form-input" name="party_name" placeholder="Client or Supplier name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reference No</label>
+              <input class="form-input" name="ref_no" placeholder="Order / Invoice no">
+            </div>
+          </div>
+        </section>
+
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Financial & Notes</h4>
+            <p>Define absolute amount, gateway payment mode, and transaction logs.</p>
+          </div>
+          <div class="form-grid product-form-grid">
+            <div class="form-group">
+              <label class="form-label">Amount (₹) <span class="required">*</span></label>
+              <input class="form-input" name="amount" type="number" min="0" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Mode</label>
+              <select class="form-select" name="mode"><option>Cash</option><option>Bank Transfer</option><option>NEFT</option><option>RTGS</option><option>Cheque</option><option>UPI</option></select>
+            </div>
+            <div class="form-group form-col-full">
+              <label class="form-label">Notes</label>
+              <textarea class="form-textarea" name="notes" rows="2" placeholder="Transaction notes..."></textarea>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="APP.closeModal('txn-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTxn()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/database.js?v=41"></script><script src="../assets/js/utils.js?v=41"></script><script src="../assets/js/components/search-select.js?v=41"></script><script src="../assets/js/app.js?v=41"></script><script src="../assets/js/transactions.js?v=41"></script>
+</body></html>

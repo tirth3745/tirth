@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroChem ERP — Formulations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css?v=41"><link rel="stylesheet" href="../assets/css/tables.css?v=41"><link rel="stylesheet" href="../assets/css/forms.css?v=41"><link rel="stylesheet" href="../assets/css/responsive.css?v=41"><link rel="stylesheet" href="../assets/css/components/search-select.css?v=41">
+  <style>
+    #form-modal .modal.formulation-modal {
+      width: min(1180px, 100%);
+      max-width: min(1180px, calc(100vw - 24px));
+      max-height: min(92vh, 980px) !important;
+    }
+
+    #form-modal .modal-body {
+      padding: 0 !important;
+      background: transparent;
+    }
+
+    .formulation-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .formulation-form {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      padding: 22px 20px 26px;
+    }
+
+    .formulation-section-block {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .formulation-inline-note {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .formulation-inline-note-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .formulation-base-volume {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(110px, 140px);
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .formulation-ingredients-table {
+      margin-bottom: 8px;
+    }
+
+    .formulation-ingredients-table th,
+    .formulation-ingredients-table td {
+      vertical-align: middle;
+    }
+
+    .formulation-ingredients-table .ingredient-or-cell {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .formulation-summary-grid {
+      gap: 16px;
+      margin-bottom: 4px;
+    }
+
+    .formulation-actions-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .formulation-actions-group {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .formulation-inline-field {
+      min-width: 160px;
+      flex: 1 1 160px;
+    }
+
+    .formulation-inline-field .form-label {
+      margin-bottom: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .formulation-validation-panel {
+      display: none;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.08);
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: var(--text-primary);
+    }
+
+    .formulation-validation-panel.has-warning {
+      display: block;
+    }
+
+    .formulation-validation-panel ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    .formulation-validation-panel li + li {
+      margin-top: 4px;
+    }
+
+    .formulation-bom-table td,
+    .formulation-bom-table th {
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .formulation-summary-grid .summary-card {
+      min-width: 0;
+    }
+
+    .formulation-summary-grid .summary-card .value {
+      font-size: clamp(18px, 2vw, 22px);
+      overflow-wrap: anywhere;
+    }
+
+    #ingredients-container .ingredient-row td,
+    #ingredients-container .ingredient-row .form-input,
+    #ingredients-container .ingredient-row .form-select {
+      min-width: 0;
+    }
+
+    #form-modal .modal-footer {
+      flex-wrap: wrap;
+    }
+
+    @media (min-width: 769px) {
+      .formulation-form {
+        padding: 28px 28px 32px;
+      }
+
+      .formulation-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .formulation-form {
+        padding: 34px 40px 36px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #form-modal {
+        align-items: center;
+        justify-content: center;
+        padding: 72px 12px 16px;
+      }
+
+      #form-modal .modal.formulation-modal {
+        max-width: 100%;
+        width: calc(100vw - 24px);
+        max-height: calc(100dvh - 88px) !important;
+      }
+
+      .formulation-form {
+        gap: 22px;
+        padding: 18px 16px 20px;
+      }
+
+      .formulation-inline-note {
+        align-items: flex-start;
+      }
+
+      .formulation-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .formulation-actions-bar,
+      .formulation-actions-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #form-modal .line-items-wrap {
+        overflow: visible !important;
+      }
+
+      #form-modal .formulation-ingredients-table,
+      #form-modal #ingredients-container,
+      #form-modal #ingredients-container tr {
+        width: 100% !important;
+      }
+
+      #form-modal #ingredients-container tr {
+        max-width: 100%;
+        margin-left: auto !important;
+        margin-right: auto !important;
+      }
+
+      .formulation-ingredients-table .ingredient-or-cell {
+        text-align: left;
+      }
+
+      #form-modal .formulation-ingredients-table td {
+        align-items: center !important;
+      }
+
+      #form-modal .formulation-ingredients-table td[data-label="Ingredient"] {
+        align-items: center !important;
+      }
+
+      #form-modal .formulation-ingredients-table td .mobile-label {
+        width: 100%;
+      }
+
+      #form-modal .formulation-ingredients-table td[data-label="Ingredient"] .mobile-label {
+        text-align: center;
+      }
+
+      #form-modal .formulation-ingredients-table td:not(.ingredient-or-cell) .mobile-label {
+        text-align: left;
+      }
+
+      #form-modal .formulation-ingredients-table td .form-input,
+      #form-modal .formulation-ingredients-table td .form-select {
+        width: 100% !important;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      #form-modal .formulation-ingredients-table .ingredient-or-cell {
+        align-items: center !important;
+        text-align: center;
+      }
+
+      #form-modal .modal-footer {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      }
+
+      #form-modal .modal-footer .btn {
+        width: 100%;
+        min-width: 0;
+        flex: unset;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .formulation-base-volume {
+        grid-template-columns: 1fr;
+      }
+
+      #form-modal .modal-header {
+        padding: 18px 16px;
+      }
+
+      #form-modal .modal-title {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+  <script src="../assets/js/shared-layout.js?v=41"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>LAYOUT.injectLayout('Formulations','Formulations'))</script>
+  <main class="main-content" id="main-content">
+    <div class="page-body">
+      <div class="page-header">
+        <div class="page-header-left"><h2>Chemical Formulations</h2><p>Manage product recipes and active ingredient specifications</p></div>
+        <div class="page-header-right">
+          <a href="batch-calculator.html" class="btn btn-secondary btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>Batch Calc</a>
+          <button class="btn btn-primary" onclick="openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Formulation</button>
+        </div>
+      </div>
+      <div class="table-toolbar" style="border:none; background:transparent; padding:0; margin-bottom:20px">
+        <div class="table-toolbar-left">
+          <div class="table-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="search-input" placeholder="Search formulations…"></div>
+        </div>
+        <div class="table-toolbar-right"><span class="text-sm text-muted" id="total-info"></span></div>
+      </div>
+      <div class="grid grid-3" id="form-grid" style="gap:20px">
+        <div style="grid-column:1/-1;text-align:center;padding:60px"><div class="spinner" style="margin:0 auto"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Production Modal -->
+<div class="modal-overlay" id="production-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Produce Batch</span>
+      <button class="modal-close" onclick="APP.closeModal('production-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <form id="production-form" onsubmit="return false">
+        <input type="hidden" id="prod-formulation-id">
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Production Attributes</h4>
+            <p>Select the finished catalog item to produce and define batch metrics.</p>
+          </div>
+          <div class="form-grid product-form-grid">
+            <div class="form-group form-col-full">
+              <label class="form-label">Select Finished Good Product <span class="required">*</span></label>
+              <select class="form-select" id="prod-product-id" data-autocomplete></select>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">This is the catalog item that will be added to stock.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batch Size <span id="prod-unit-label"></span> <span class="required">*</span></label>
+              <input class="form-input" id="prod-batch-size" type="number" step="0.01" oninput="calculateProductionNeeds()">
+            </div>
+            <div class="form-group">
+               <label class="form-label">Batch Number</label>
+               <input class="form-input" id="prod-batch-no" type="text" placeholder="e.g. B2026-001">
+            </div>
+          </div>
+        </section>
+
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Required Raw Materials</h4>
+            <p>Ingredients auto-computed based on standard recipe formulation.</p>
+          </div>
+          <div id="prod-ingredients-list" style="padding:15px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid var(--border)">
+            <div style="font-size:12px;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Required Raw Materials</div>
+            <div id="prod-ingredients-inner"></div>
+          </div>
+        </section>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="APP.closeModal('production-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmProduction()">Produce & Update Stock</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="form-modal">
+  <div class="modal modal-xl formulation-modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Add Formulation</span>
+      <button class="modal-close" onclick="APP.closeModal('form-modal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="formulation-shell">
+      <form id="form-form" class="formulation-form" onsubmit="return false">
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Formulation Identity</h4>
+            <p>Provide chemical description, recipe name, and standard batch base volume.</p>
+          </div>
+          <div class="form-grid product-form-grid">
+            <div class="form-group form-col-full">
+              <label class="form-label">Product Name</label>
+              <input class="form-input" name="name" type="text" placeholder="e.g., Ultra-Grow 500" required>
+            </div>
+            <div class="form-group form-col-full">
+              <label class="form-label">Description / Application Note</label>
+              <textarea class="form-textarea" name="description" rows="2" placeholder="Brief details about this formulation…"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batch Size</label>
+              <div class="formulation-base-volume">
+                <input class="form-input" name="batch_size" id="base-volume-input" type="number" min="0.0001" step="0.0001" value="1000" oninput="handleBatchInputChange()" style="flex:1">
+                <select class="form-select" name="batch_unit" id="master-unit-sel" onchange="handleBatchInputChange()">
+                  <option value="L">L</option>
+                  <option value="ML">ML</option>
+                  <option value="KG">KG</option>
+                  <option value="Gram">Gram</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Molecular Composition</h4>
+            <p>Build the batch using percentage, quantity, or mixed-entry ingredient rows.</p>
+          </div>
+          <div class="formulation-inline-note" style="margin-bottom: 12px;">
+            <div class="formulation-inline-note-text">Use percentage or quantity per row. The paired value is auto-calculated from the batch size.</div>
+            <div class="text-sm font-bold">Total Qty: <span id="total-composition-display" class="text-accent">0.0000</span> <span id="total-composition-unit">L</span></div>
+          </div>
+
+          <div id="formulation-validation-panel" class="formulation-validation-panel"></div>
+
+          <div class="formulation-actions-bar">
+            <div class="formulation-actions-group">
+              <div class="formulation-inline-field">
+                <label class="form-label">Scale Formula To</label>
+                <input class="form-input" id="scale-batch-size" type="number" min="0.0001" step="0.0001" placeholder="Enter new batch size">
+              </div>
+              <button type="button" class="btn btn-secondary" onclick="scaleFormula()">Scale Formula</button>
+            </div>
+            <div class="formulation-actions-group">
+              <div class="formulation-inline-field">
+                <label class="form-label">Balance Ingredient</label>
+                <select class="form-select" id="balance-ingredient-select">
+                  <option value="">Select ingredient</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-secondary" onclick="autoBalanceFormula()">Auto Balance Formula</button>
+            </div>
+          </div>
+
+          <div class="line-items-wrap">
+            <table class="line-items-table formulation-ingredients-table" id="ingredients-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="text-align:center">%</th>
+                  <th style="text-align:center">Qty</th>
+                  <th style="text-align:center">Unit</th>
+                  <th style="text-align:center">Cost/Unit</th>
+                  <th style="text-align:center">Total Cost</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="ingredients-container"></tbody>
+            </table>
+          </div>
+          <button type="button" class="add-line-btn" onclick="addIngredientRow()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Ingredient
+          </button>
+        </section>
+
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Calculation Summary</h4>
+            <p>Auto-computed recipe analysis based on unit costs and quantities.</p>
+          </div>
+          <div class="grid formulation-summary-grid">
+            <div class="summary-card">
+              <div class="label">INGREDIENT COUNT</div>
+              <div class="value" id="ingredient-count">0</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">TOTAL PERCENTAGE</div>
+              <div class="value" id="total-percentage">0.0000%</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">REMAINING PERCENTAGE</div>
+              <div class="value" id="remaining-percentage">100.0000%</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">TOTAL QUANTITY</div>
+              <div class="value" id="total-quantity">0.0000 L</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">REMAINING QUANTITY</div>
+              <div class="value" id="remaining-quantity">0.0000 L</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">TOTAL BATCH COST</div>
+              <div class="value text-accent" id="total-cost">₹0.00</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">COST PER UNIT</div>
+              <div class="value" id="unit-cost">₹0.00</div>
+            </div>
+          </div>
+        </section>
+        <section class="product-form-card">
+          <div class="product-form-card-head">
+            <h4>Manufacturing BOM</h4>
+            <p>Latest bill of materials generated from the current formulation state.</p>
+          </div>
+          <div class="line-items-wrap">
+            <table class="line-items-table formulation-bom-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>Required Quantity</th>
+                  <th>Unit</th>
+                  <th>Percentage</th>
+                  <th>Cost</th>
+                </tr>
+              </thead>
+              <tbody id="bom-container">
+                <tr><td colspan="5" class="text-muted text-sm">Add ingredients to generate the BOM.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </form>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="APP.closeModal('form-modal')">Cancel</button>
+      <button class="btn btn-primary" id="save-formulation-btn" onclick="saveFormulation()">Save Formulation</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/database.js?v=41"></script><script src="../assets/js/utils.js?v=41"></script><script src="../assets/js/components/search-select.js?v=41"></script><script src="../assets/js/app.js?v=41"></script><script src="../assets/js/formulations.js?v=41"></script>
+</body></html>
