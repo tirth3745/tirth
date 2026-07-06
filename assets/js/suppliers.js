@@ -30,6 +30,12 @@ async function loadSuppliers() {
     setTimeout(() => UTILS.initAllAutocompleteSelects(), 50);
     
     console.log('Suppliers: All data loaded successfully');
+
+    // Attach search listener
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', filterAndRender);
+    }
   } catch (err) {
     console.error('Suppliers loadSuppliers failed:', err);
     updatePageDebug('FAILED', '#EF4444');
@@ -59,6 +65,20 @@ function renderTable(data) {
     </div></td>
   </tr>`).join('');
   UTILS.applyMobileTableLabels('suppliers-table');
+}
+
+function filterAndRender() {
+  const q = document.getElementById('search-input')?.value.toLowerCase() || '';
+  let filtered = allSuppliers;
+  if (q) {
+    filtered = filtered.filter(s => 
+      (s.name || '').toLowerCase().includes(q) || 
+      (s.company_name || '').toLowerCase().includes(q) || 
+      (s.contact || '').toLowerCase().includes(q) || 
+      (s.city || '').toLowerCase().includes(q)
+    );
+  }
+  renderTable(filtered);
 }
 
 function openAdd() {

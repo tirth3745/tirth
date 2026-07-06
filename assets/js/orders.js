@@ -47,19 +47,24 @@ function renderTable(data) {
     tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><h3>No orders found</h3><p>Create your first order.</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = data.map(o => `<tr>
-    <td><input type="checkbox" class="row-check" value="${o.id}"></td>
-    <td class="cell-bold">${o.order_no}</td>
-    <td>${o.client_display || '—'}</td>
-    <td>${UTILS.fmtDate(o.date)}</td>
-    <td class="cell-amount">${UTILS.fmtCurrency(o.total_amount)}</td>
-    <td class="cell-amount text-success">${UTILS.fmtCurrency(o.paid_amount)}</td>
-    <td class="cell-amount text-danger">${UTILS.fmtCurrency(o.total_amount - (o.paid_amount || 0))}</td>
-    <td><div class="row-actions">
-      <button class="action-btn edit" onclick="openEdit(${o.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-      <button class="action-btn delete" onclick="deleteOrder(${o.id})" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
-    </div></td>
-  </tr>`).join('');
+  tbody.innerHTML = data.map(o => {
+    const balance = parseFloat(o.total_amount) - parseFloat(o.paid_amount || 0);
+    const rowBg = balance <= 0 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)';
+    
+    return `<tr style="background: ${rowBg}">
+      <td><input type="checkbox" class="row-check" value="${o.id}"></td>
+      <td class="cell-bold">${o.order_no}</td>
+      <td>${o.client_display || '—'}</td>
+      <td>${UTILS.fmtDate(o.date)}</td>
+      <td class="cell-amount">${UTILS.fmtCurrency(o.total_amount)}</td>
+      <td class="cell-amount text-success">${UTILS.fmtCurrency(o.paid_amount)}</td>
+      <td class="cell-amount text-danger">${UTILS.fmtCurrency(balance)}</td>
+      <td><div class="row-actions">
+        <button class="action-btn edit" onclick="openEdit(${o.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="action-btn delete" onclick="deleteOrder(${o.id})" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      </div></td>
+    </tr>`;
+  }).join('');
   UTILS.applyMobileTableLabels('orders-table');
 }
 
@@ -236,5 +241,11 @@ async function deleteOrder(id) {
     }
   });
 }
+
+document.getElementById('search-input')?.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  const filtered = q ? allOrders.filter(o => `${o.order_no} ${o.client_display} ${o.date}`.toLowerCase().includes(q)) : allOrders;
+  renderTable(filtered);
+});
 
 loadOrders();

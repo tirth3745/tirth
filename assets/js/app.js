@@ -1,6 +1,23 @@
 /* ─── app.js ──────────────────────────────────────────── */
 /* Sidebar, Topbar, Toast, Modal, Spinner, Navigation      */
 
+// Global Fetch Interceptor to handle 401 Unauthorized API responses
+(function() {
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const response = await originalFetch(...args);
+    if (response.status === 401 && typeof args[0] === 'string' && !args[0].includes('/api/auth/')) {
+      const pathname = window.location.pathname;
+      if (!pathname.includes('login.html')) {
+        const isPagesDir = pathname.includes('/pages/');
+        const loginUrl = isPagesDir ? '../login.html' : './login.html';
+        window.location.href = loginUrl;
+      }
+    }
+    return response;
+  };
+})();
+
 /* ── SIDEBAR ─────────────────────────────────────────── */
 let sidebarEl = document.getElementById('sidebar');
 let mainContentEl = document.getElementById('main-content');
@@ -294,11 +311,48 @@ function openUserProfile() {
 
 function handleLogout() {
   closeUserDropdown();
-  showConfirm('Log out and return to the welcome screen?', () => {
-    showToast('Logged out successfully', 'success', 1800);
-    setTimeout(() => {
-      window.location.href = '../index.html';
-    }, 300);
+  showConfirm('Log out and return to the welcome screen?', async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const contentType = response.headers.get('content-type') || '';
+      const rawBody = await response.text();
+      let result = null;
+
+      if (rawBody && contentType.includes('application/json')) {
+        try {
+          result = JSON.parse(rawBody);
+        } catch (parseError) {
+          console.error('Logout response parse error:', parseError, rawBody);
+        }
+      }
+
+      if (!result && response.ok) {
+        result = {
+          success: true,
+          redirect: '/'
+        };
+      }
+
+      if (!result) {
+        throw new Error(`Unexpected logout response (${response.status})`);
+      }
+
+      if (result.success) {
+        showToast('Logged out successfully', 'success', 1800);
+        setTimeout(() => {
+          window.location.href = result.redirect || '/';
+        }, 300);
+      } else {
+        showToast('Logout failed: ' + result.message, 'error');
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+      showToast('Logout failed: ' + err.message, 'error');
+    }
   });
 }
 

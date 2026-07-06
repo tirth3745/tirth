@@ -300,3 +300,169 @@ exports.updateOrder = async (req, res, next) => {
   }
 };
 
+async function syncOrderToInvoice(conn, orderId, isDelete = false) {
+  try {
+    // If delete
+    if (isDelete) {
+      // Find the order number first
+      const [ordRows] = await conn.query('SELECT order_no FROM orders WHERE id = ?', [orderId]);
+      if (ordRows.length > 0) {
+        const orderNo = ordRows[0].order_no;
+        const strippedNo = orderNo.startsWith('INV-') ? orderNo.substring(4) : orderNo;
+        await conn.query(
+          'DELETE FROM invoices WHERE UniqueID = ? OR InvoiceNumber = ? OR UniqueID = ? OR InvoiceNumber = ?',
+          [orderNo, orderNo, strippedNo, strippedNo]
+        );
+      }
+      return;
+    }
+
+    // Load order
+    const [ordRows] = await conn.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+    if (ordRows.length === 0) return;
+    const order = ordRows[0];
+
+    // Load client info
+    let clientAddress = '';
+    let clientPhone = '';
+    let clientGSTIN = '';
+    if (order.client_id) {
+      const [cRows] = await conn.query('SELECT address, contact, gst FROM clients WHERE id = ?', [order.client_id]);
+      if (cRows.length > 0) {
+        clientAddress = cRows[0].address || '';
+        clientPhone = cRows[0].contact || '';
+        clientGSTIN = cRows[0].gst || '';
+      }
+    }
+
+    // Load order items
+    const [itemRows] = await conn.query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
+
+    // Build productRows for ItemsJSON
+    const productRows = itemRows.map(it => ({
+      id: String(it.product_id),
+      brand: '',
+      name: it.product_name,
+      desc: '',
+      qty: parseFloat(it.quantity) || 0,
+      price: parseFloat(it.unit_price) || 0,
+      total: parseFloat(it.total) || 0,
+      hsn: '',
+      gstRate: 0
+    }));
+
+    const subtotal = parseFloat(order.total_amount) || 0;
+    const dueAmount = subtotal - (parseFloat(order.paid_amount) || 0);
+
+    const strippedNo = order.order_no.startsWith('INV-') ? order.order_no.substring(4) : order.order_no;
+    const [existing] = await conn.query(
+      'SELECT UniqueID FROM invoices WHERE UniqueID = ? OR InvoiceNumber = ? OR UniqueID = ? OR InvoiceNumber = ?',
+      [order.order_no, order.order_no, strippedNo, strippedNo]
+    );
+
+    let targetUniqueId = order.order_no;
+    let targetInvoiceNo = strippedNo;
+    if (existing.length > 0) {
+      targetUniqueId = existing[0].UniqueID;
+    }
+
+    const inv = {
+      InvoiceNumber: targetInvoiceNo,
+      UniqueID: targetUniqueId,
+      InvoiceType: 'Non-GST',
+      Date: order.date,
+      DueDate: order.due_date || '',
+      ClientName: order.client_name,
+      ClientAddress: clientAddress,
+      ClientPhone: clientPhone,
+      ClientGSTIN: clientGSTIN,
+      Subtotal: subtotal,
+      TaxableAmount: subtotal,
+      Tax: parseFloat(order.tax) || 0,
+      CGST: 0,
+      SGST: 0,
+      IGST: 0,
+      TotalTax: parseFloat(order.tax) || 0,
+      GrandTotal: subtotal,
+      DueAmount: dueAmount,
+      NonGstTaxType: '',
+      CompanyName: 'AgroChem',
+      FromAddress: 'Survey No.207/1, Nr. Balaji Agro, Shapar, Rajkot, Gujarat - 360024',
+      FromPhone: '9664675227',
+      FromEmail: 'skagro3105@gmail.com',
+      FromGSTIN: '24AERFS1718Q1ZB',
+      Signatory: 'Authorized Signatory',
+      rows: productRows,
+      calculations: {
+        subtotal: subtotal,
+        totalTax: parseFloat(order.tax) || 0,
+        grandTotal: subtotal,
+        dueAmount: dueAmount
+      }
+    };
+
+    const itemsJSON = JSON.stringify(inv);
+    const lastUpdated = new Date().toISOString();
+
+    const dbParams = [
+      targetInvoiceNo,
+      'Non-GST',
+      order.date,
+      order.due_date || '',
+      order.client_name,
+      clientAddress,
+      clientPhone,
+      clientGSTIN,
+      'Gujarat',
+      '24',
+      'Gujarat',
+      subtotal,
+      subtotal,
+      parseFloat(order.tax) || 0,
+      0, 0, 0,
+      parseFloat(order.tax) || 0,
+      subtotal,
+      dueAmount,
+      '',
+      'AgroChem',
+      'Survey No.207/1, Nr. Balaji Agro, Shapar, Rajkot, Gujarat - 360024',
+      '9664675227',
+      'skagro3105@gmail.com',
+      '24AERFS1718Q1ZB',
+      'Authorized Signatory',
+      '', '', '', '', '', '',
+      itemsJSON,
+      lastUpdated,
+      targetUniqueId
+    ];
+
+    if (existing.length > 0) {
+      await conn.query(
+        `UPDATE invoices SET 
+          InvoiceNumber = ?, InvoiceType = ?, Date = ?, DueDate = ?, ClientName = ?, ClientAddress = ?, 
+          ClientPhone = ?, ClientGSTIN = ?, ClientState = ?, ClientStateCode = ?, PlaceOfSupply = ?, 
+          Subtotal = ?, TaxableAmount = ?, Tax = ?, CGST = ?, SGST = ?, IGST = ?, TotalTax = ?, 
+          GrandTotal = ?, DueAmount = ?, NonGstTaxType = ?, CompanyName = ?, FromAddress = ?, 
+          FromPhone = ?, FromEmail = ?, FromGSTIN = ?, Signatory = ?, BankName = ?, BankAcc = ?, 
+          BankIFSC = ?, UPI = ?, Intro = ?, Terms = ?, ItemsJSON = ?, LastUpdated = ? 
+         WHERE UniqueID = ?`,
+        dbParams
+      );
+    } else {
+      await conn.query(
+        `INSERT INTO invoices (
+          InvoiceNumber, InvoiceType, Date, DueDate, ClientName, ClientAddress, 
+          ClientPhone, ClientGSTIN, ClientState, ClientStateCode, PlaceOfSupply, 
+          Subtotal, TaxableAmount, Tax, CGST, SGST, IGST, TotalTax, 
+          GrandTotal, DueAmount, NonGstTaxType, CompanyName, FromAddress, 
+          FromPhone, FromEmail, FromGSTIN, Signatory, BankName, BankAcc, 
+          BankIFSC, UPI, Intro, Terms, ItemsJSON, LastUpdated, UniqueID
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        dbParams
+      );
+    }
+  } catch (err) {
+    console.error('Error syncing order to invoice:', err);
+  }
+}
+

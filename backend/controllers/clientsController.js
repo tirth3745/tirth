@@ -100,6 +100,10 @@ exports.updateClient = async (req, res, next) => {
 exports.deleteClient = async (req, res, next) => {
   try {
     const { id } = req.params;
+    
+    // Deleting related cash/bank ledger transactions for this client first
+    await db.query('DELETE FROM transactions WHERE (type = "Receipt" AND party_id = ?) OR (ref_type = "Order" AND party_id = ?)', [id, id]);
+
     const [result] = await db.query('DELETE FROM clients WHERE id = ?', [id]);
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'Client not found' });

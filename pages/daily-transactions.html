@@ -32,11 +32,13 @@
     .line-items-table th { background: var(--bg); padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
     .line-items-table td { padding: 12px; border-bottom: 1px solid var(--border); }
     .line-items-table input, .line-items-table select { font-size: 12px; padding: 6px 8px; }
+    .data-table td:nth-child(4), .data-table td:nth-child(5) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
     @media (max-width: 900px) {
       .material-toolbar { grid-template-columns: 1fr; }
       .packaging-grid { grid-template-columns: 1fr; }
       .material-list-head { display: none; }
       .material-row { grid-template-columns: 1fr; }
+      .data-table td:nth-child(4), .data-table td:nth-child(5) { max-width: 150px; }
     }
   </style>
 </head>

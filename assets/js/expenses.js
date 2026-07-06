@@ -19,6 +19,30 @@ async function loadExpenses() {
     
     await DB.initDB();
     
+    // Fetch master options for expense categories
+    try {
+      const optRes = await fetch('/api/master-options');
+      if (optRes.ok) {
+        const opts = await optRes.ok ? await optRes.json() : [];
+        const expenseCategories = opts.filter(o => o.category === 'expense_category').map(o => o.value);
+        
+        // If we found any custom expense categories in database, use them
+        const finalCategories = expenseCategories.length > 0 ? expenseCategories : ['Insecticides', 'Fungicides', 'Herbicides', 'PGR'];
+        
+        const catFilter = document.getElementById('cat-filter');
+        if (catFilter) {
+          catFilter.innerHTML = '<option value="">All Categories</option>' + finalCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        
+        const catFormSelect = document.querySelector('#expense-form select[name="category"]');
+        if (catFormSelect) {
+          catFormSelect.innerHTML = finalCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load expense categories from master options:', e);
+    }
+    
     const res = await fetch('/api/expenses');
     if (!res.ok) throw new Error('Failed to fetch expenses');
     allExpenses = await res.json();
@@ -27,6 +51,7 @@ async function loadExpenses() {
     renderChart(allExpenses);
     
     updatePageDebug('Ready (' + allExpenses.length + ')', '#10B981');
+    setTimeout(() => UTILS.initAllAutocompleteSelects(), 50);
     console.log('Expenses: All data loaded successfully');
   } catch (err) {
     console.error('Expenses loadExpenses failed:', err);

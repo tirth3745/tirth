@@ -916,6 +916,36 @@ textarea {
   gap: 8px;
 }
 
+.topbar-invoice-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-right: 8px;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+.topbar-invoice-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .topbar-invoice-btn .btn-text {
+    display: none;
+  }
+  .topbar-invoice-btn {
+    padding: 8px;
+    margin-right: 4px;
+  }
+}
+
 .mobile-bottom-nav {
   display: none;
 }
@@ -1243,6 +1273,8 @@ textarea {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   transition: var(--transition);
 }
 
@@ -1267,17 +1299,20 @@ textarea {
 .stat-icon {
   width: 54px;
   height: 54px;
-  border-radius: var(--radius-xl);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   margin: 0 auto 10px;
+  line-height: 1;
 }
 
 .stat-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: block;
+  flex-shrink: 0;
 }
 
 .stat-icon.purple {
@@ -1300,9 +1335,10 @@ textarea {
   color: var(--danger);
 }
 
+/* Clients icon — uses olive accent to match site theme */
 .stat-icon.blue {
-  background: var(--info-light);
-  color: var(--info);
+  background: var(--accent-light);
+  color: var(--accent);
 }
 
 .stat-label {
@@ -1323,6 +1359,7 @@ textarea {
 .stat-trend {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
@@ -1595,11 +1632,12 @@ textarea {
 
 .btn-success {
   background: var(--success);
-  color: var(--text-bright);
+  color: #ffffff;
 }
 
 .btn-success:hover {
   background: #3f6b14;
+  color: #ffffff;
 }
 
 .btn-ghost {
@@ -2500,6 +2538,10 @@ textarea {
   border: 1px solid var(--border); 
   border-radius: var(--radius); 
   padding: 18px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   transition: all 0.2s; 
 }
 .stat-card:hover { 

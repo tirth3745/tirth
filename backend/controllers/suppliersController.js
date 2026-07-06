@@ -102,9 +102,13 @@ exports.updateSupplier = async (req, res, next) => {
 exports.deleteSupplier = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    // Deleting related cash/bank ledger transactions for this supplier first
+    await db.query('DELETE FROM transactions WHERE (type = "Payment" AND party_id = ?) OR (ref_type = "Purchase" AND party_id = ?)', [id, id]);
+
     const [result] = await db.query('DELETE FROM suppliers WHERE id = ?', [id]);
     if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: 'Supplier not found' });
+       return res.status(404).json({ success: false, message: 'Supplier not found' });
     }
     res.json({ success: true, message: 'Supplier deleted successfully' });
   } catch (err) {

@@ -18,3 +18,8 @@ Notes
 
 - On Windows PowerShell, use npm.cmd start instead of npm start.
 - If the server is already running, do not start a second copy on the same port.
+
+
+Username, Password
+admin.js file
+Path to the file is backend\config\admin.js

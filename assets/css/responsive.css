@@ -90,7 +90,7 @@
   :root { --sidebar-w: 240px; }
 
   .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .quick-actions { grid-template-columns: repeat(2, 1fr); }
+  .quick-actions { grid-template-columns: repeat(3, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
 
@@ -811,6 +811,8 @@
   .stat-card { padding: 14px; }
   .stat-value { font-size: 20px; }
   .stat-label { font-size: 10px; }
+  .stat-icon { width: 44px; height: 44px; margin-bottom: 8px; }
+  .stat-icon svg { width: 22px; height: 22px; }
 
   .data-table-wrap-mobile .data-table tbody td::before { min-width: 75px; }
 
@@ -841,6 +843,8 @@
   .stat-card { padding: 10px; }
   .stat-value { font-size: 16px; }
   .stat-label { font-size: 8px; }
+  .stat-icon { width: 40px; height: 40px; margin-bottom: 6px; }
+  .stat-icon svg { width: 20px; height: 20px; }
 
 
 

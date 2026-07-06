@@ -42,6 +42,13 @@ async function loadPurchases() {
     setTimeout(() => UTILS.initAllAutocompleteSelects(), 50);
     
     console.log('Purchases: All data loaded successfully');
+
+  // Attach search listener
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', filterAndRender);
+  }
+
   } catch (err) {
     console.error('Purchases loadPurchases failed:', err);
     updatePageDebug('FAILED', '#EF4444');
@@ -88,6 +95,20 @@ function renderTable(data) {
     </div></td>
   </tr>`).join('');
   UTILS.applyMobileTableLabels('purchases-table');
+}
+
+function filterAndRender() {
+  const q = document.getElementById('search-input')?.value.toLowerCase() || '';
+  let filtered = allPurchases;
+  if (q) {
+    filtered = filtered.filter(p => 
+      (p.purchase_no || '').toLowerCase().includes(q) || 
+      (p.supplier_display || '').toLowerCase().includes(q) || 
+      (p.invoice_no || '').toLowerCase().includes(q) ||
+      (p.date || '').toLowerCase().includes(q)
+    );
+  }
+  renderTable(filtered);
 }
 
 async function populateSupplierSelect() {

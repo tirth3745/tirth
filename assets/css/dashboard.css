@@ -204,8 +204,8 @@
   justify-content: center;
   gap: 10px;
   padding: 22px 16px;
-  background: #ffffff;
-  border: 1px solid rgba(38, 61, 25, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius-lg) + 4px);
   cursor: pointer;
   transition: var(--transition-slow);
@@ -213,7 +213,7 @@
   color: var(--text-primary);
   min-height: 124px;
   width: 100%;
-  box-shadow: 0 10px 22px rgba(28, 36, 18, 0.06);
+  box-shadow: var(--shadow);
 }
 
 .quick-action-card:hover {
